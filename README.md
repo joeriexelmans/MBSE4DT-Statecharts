@@ -1,6 +1,9 @@
 ## Dependencies
 
- * Python3 + (optional) TkInter
+ * Python3
+ * Python3 packages:
+   * (optional) TkInter
+   * (optional) paho-mqtt
 
 ## Included examples
 
