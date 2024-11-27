@@ -1,5 +1,5 @@
 import functools
-from src.test import run_scenario
+from lib.test import run_scenario
 from common import setup
 
 # For each test scenario, sends a sequence of timed input events to the statechart, and checks if the expected sequence of timed output events occurs.

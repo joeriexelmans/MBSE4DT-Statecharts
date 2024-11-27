@@ -1,4 +1,4 @@
-from src.controller import pretty_time
+from lib.controller import pretty_time
 
 # Records input/output events
 class Tracer:

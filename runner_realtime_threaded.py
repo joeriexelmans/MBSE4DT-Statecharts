@@ -1,7 +1,7 @@
 # Headless real-time simulation, in a Python thread.
 
 from common import setup, setup_fake_scheduler, setup_fake_crane_control, setup_wall_clock
-from src.realtime.threaded import ThreadedRealTimeSimulation
+from lib.realtime.threaded import ThreadedRealTimeSimulation
 
 import threading
 

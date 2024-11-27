@@ -22,9 +22,9 @@ will run the headless real-time example, with time factor 2 (twice as fast as re
 
 The following files are of interest:
 
- * `Statechart.ysc` Itemis CREATE Statechart model
+ * `Statechart.ysc` Statechart model - the file you'll edit.
  * `Statechart.sgen` Code generation options (used by Itemis when generating code)
  * `srcgen/statechart.py` Generated code (by Itemis) from the Statechart model
  * `common.py` Instantiates and initializes the Statechart, and the Controller. Shows how to respond to output events (by creating Observers).
- * `src/` Directory mostly containing the Statechart runtime (needed for execution).
- * `src/yakindu/rx.py` Some classes from Itemis.
+ * `lib/` Directory mostly containing the Statechart runtime (needed for execution).
+ * `lib/yakindu/rx.py` Some classes from Itemis.

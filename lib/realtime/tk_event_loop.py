@@ -1,4 +1,4 @@
-from src.realtime.event_loop import AbstractEventLoop
+from lib.realtime.event_loop import AbstractEventLoop
 
 # schedules calls in an existing tkinter eventloop
 class TkEventLoopAdapter(AbstractEventLoop):

@@ -2,8 +2,8 @@ from common import setup, setup_wall_clock, setup_fake_scheduler
 from mqtt_example.networked_crane_control import setup_networked_crane_control
 
 from gui import GUI
-from src.realtime.event_loop import EventLoopRealTimeSimulation
-from src.realtime.tk_event_loop import TkEventLoopAdapter
+from lib.realtime.event_loop import EventLoopRealTimeSimulation
+from lib.realtime.tk_event_loop import TkEventLoopAdapter
 
 
 # Runs our Statechart, inside TKInter event loop.

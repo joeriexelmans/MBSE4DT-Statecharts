@@ -1,7 +1,7 @@
 import tkinter
 import tkinter.constants
 
-from src.yakindu_helpers import CallbackObserver
+from lib.yakindu_helpers import CallbackObserver
 
 class GUI:
     def __init__(self, controller, sc):
@@ -12,8 +12,8 @@ class GUI:
 
         controller.input_tracers.append(self.set_status)
 
-        sc.magnet_on_observable = CallbackObserver(lambda value: self.var_magnet_status.set("magnet is on"))
-        sc.magnet_off_observable = CallbackObserver(lambda value: self.var_magnet_status.set("magnet is off"))
+        sc.crane_control.magnet_on_observable.subscribe(CallbackObserver(lambda value: self.var_magnet_status.set("magnet is on")))
+        sc.crane_control.magnet_off_observable.subscribe(CallbackObserver(lambda value: self.var_magnet_status.set("magnet is off")))
 
         self.tk.title("Crane SIMULATOR")
         self.tk.geometry("400x150")

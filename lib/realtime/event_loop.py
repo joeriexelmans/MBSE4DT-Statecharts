@@ -1,5 +1,5 @@
-from src.controller import Controller
-from src.realtime.realtime import WallClock, AbstractRealTimeSimulation
+from lib.controller import Controller
+from lib.realtime.realtime import WallClock, AbstractRealTimeSimulation
 import time
 import abc
 

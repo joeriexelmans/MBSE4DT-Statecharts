@@ -1,7 +1,7 @@
 import threading
 
-from src.realtime.realtime import WallClock, AbstractRealTimeSimulation
-from src.controller import Controller, pretty_time
+from lib.realtime.realtime import WallClock, AbstractRealTimeSimulation
+from lib.controller import Controller, pretty_time
 
 # Runs simulation, real-time, in its own thread
 #

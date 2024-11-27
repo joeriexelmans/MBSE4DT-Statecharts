@@ -1,11 +1,11 @@
 import sys
 import math
 
-from src.controller import Controller, pretty_time
-from src.realtime.realtime import WallClock
-from src.tracer import Tracer, format_trace_as_python_code
-from src.yakindu_helpers import YakinduTimerServiceAdapter, trace_output_events
-from src.yakindu.rx import Observer
+from lib.controller import Controller, pretty_time
+from lib.realtime.realtime import WallClock
+from lib.tracer import Tracer, format_trace_as_python_code
+from lib.yakindu_helpers import YakinduTimerServiceAdapter, trace_output_events
+from lib.yakindu.rx import Observer
 from srcgen.statechart import Statechart # generated code
 
 import atexit

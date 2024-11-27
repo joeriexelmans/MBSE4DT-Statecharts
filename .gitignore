@@ -1,2 +1,4 @@
 __pycache__/
 .metadata
+Solution.ysc
+srcgen/solution.py

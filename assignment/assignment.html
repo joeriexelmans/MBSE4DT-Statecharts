@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Statecharts Assignment</title>
+  <style>
+    figcaption { font-style: italic; }
+    table { border-collapse: collapse; }
+    table td,th { border: 1px solid black; padding: 2pt }
+    th { background-color: #deadbeef }
+    ol.requirements > li::marker {
+      content: "R" counter(list-item) ". ";
+    }
+    .box { background-color: black; color: yellow; padding: 1pt; margin: 5pt; border: 1px solid black; }
+  </style>
+</head>
+<body>
+
+<h2>Goals</h2>
+<p>
+  The goal of this assignment is to familiarize yourself with Statechart modeling, simulation, testing and code generation. We will use <a href="https://www.itemis.com/en/yakindu/state-machine/">itemis CREATE</a> (formerly called &quot;YAKINDU Statechart Tools&quot;).
+</p>
+
+<h2>Getting Started</h2>
+<ol>
+  <li> Download <a href="https://www.itemis.com/en/products/itemis-create/download-options/">itemis CREATE</a>.</li>
+  <li> Get a <a href="https://info.itemis.com/products/itemis-create/academic/order/?utm_referrer=https%3A%2F%2Fwww.itemis.com%2F">free academic license</a> (sign up with your university e-mail).</li>
+  <li> Start itemis CREATE and create a new workspace.</li>
+  <li> Clone the <a href="https://github.com/joeriexelmans/MBSE4DT-Statecharts">StartingPoint git repository</a> into your itemis CREATE workspace, and import it as a project (without copying the files).</li>
+</ol>
+
+<h2>Introduction to Assignment</h2>
+<p>We will use the Statecharts formalism to model a software controller for a crane that picks up and drops off containers.</p>
+<p>The crane can move horizontally (&quot;move&quot;) and vertically (&quot;hoist&quot;), and it has an electromagnet that can be turned on/off to pickup/drop-off containers.</p>
+
+<figure>
+  <img src="artistic_impression.png"/>
+  <figcaption>Artistic impression of crane</figcaption>
+</figure>
+
+<h2>Architecture</h2>
+<p>We assume that several components already exist. These components are:</p>
+<ul>
+  <li><b>Scheduler</b>: Determines in what order and where to pickup/drop-off containers</li>
+  <li><b>Crane Control</b>: Controls the motors of the crane. Given a position, the crane control can make the crane move to that position.</li>
+  <li><b>Emergency Panel</b>: A panel with two buttons: STOP and RESUME. In case of emergency, the STOP button will temporarily stop all crane movement.</li>
+</ul>
+
+<figure>
+  <img src="emergency_panel.png"/>
+  <figcaption>Emergency Panel</figcaption>
+</figure>
+
+The Statechart model sits in between these components, and communicates with them only via (asynchronous) <em>events</em>.
+
+<figure>
+  <img src="architecture.png"/>
+  <figcaption>System Architecture. The blue and orange parts indicate deployment (explained later).</figcaption>
+</figure>
+
+<h2>Interfaces</h2>
+
+<p>For interaction with each of the assumed components, a fixed interface is provided. This interface is already implemented in the starting point Statechart file.</p>
+
+<h4>Scheduler</h4>
+<table>
+  <tr>
+    <th>In/Out</th><th>Event</th><th>Parameter</th><th>Meaning</th>
+  </tr>
+  <tr>
+    <td>out</td>
+    <td><tt id="evt-ready">ready</tt></td>
+    <td>-</td>
+    <td>Indicates that the Statechart is ready to make its next move.</td>
+  </tr>
+  <tr>
+    <td>in</td>
+    <td><tt>setTargetX</tt></td>
+    <td>real</td>
+    <td>Instructs the Statechart with the horizontal target position (= parameter) of the next move.</td>
+  </tr>
+  <tr>
+    <td>in</td>
+    <td><tt>setTargetY</tt></td>
+    <td>real</td>
+    <td>Instructs the Statechart with the vertical target position (= parameter) of the next move.</td>
+  </tr>
+  <tr>
+    <td>in</td>
+    <td><tt>makeMove</tt></td>
+    <td>-</td>
+    <td>Instructs the Statechart to make the next move. This event will only be raised after raising <tt>setTargetX</tt> and <tt>setTargetY</tt>.</td>
+  </tr>
+</table>
+
+<h4>Crane Control</h4>
+<table>
+  <tr>
+    <th>In/Out</th><th>Event</th><th>Parameter</th><th>Meaning</th>
+  </tr>
+  <tr>
+    <td>out</td>
+    <td><tt>move</tt></td>
+    <td>real</td>
+    <td>Make the crane move horizontally to given (via parameter) position.</td>
+  </tr>
+  <tr>
+    <td>out</td>
+    <td><tt>hoist</tt></td>
+    <td>real</td>
+    <td>Make the crane move vertically to given (via parameter) altitude.</td>
+  </tr>
+  <tr>
+    <td>out</td>
+    <td><tt>stopAllMovement</tt></td>
+    <td>-</td>
+    <td>If the crane is currently moving, make it stop its movement until standstill.</td>
+  </tr>
+  <tr>
+    <td>in</td>
+    <td><tt>doneMoving</tt></td>
+    <td>-</td>
+    <td>Indicates to the Statechart that the requested movement (<tt>move</tt>, <tt>hoist</tt>) or stopping (<tt>stopAllMovement</tt>) is complete.
+      <br/>Note: This event will only be sent to the Statechart for the most recent request: for instance, if <tt>move</tt> immediately followed by <tt>stopAllMovement</tt> (before having received <tt>doneMoving</tt> for the <tt>move</tt>), then <tt>doneMoving</tt> will only be received once, to indicate that <tt>stopAllMovement</tt> is complete.
+      <br/>Note: If the crane was not moving and <tt>stopAllMovement</tt> was requested, this request will still be acknowledged with the <tt>doneMoving</tt> event.
+    </td>
+  </tr>
+  <tr>
+    <td>out</td>
+    <td><tt>magnetOn</tt></td>
+    <td>-</td>
+    <td>Turns on the magnet (to pick up a container)</td>
+  </tr>
+  <tr>
+    <td>out</td>
+    <td><tt>magnetOff</tt></td>
+    <td>-</td>
+    <td>Turns off the magnet (to drop a container)</td>
+  </tr>
+</table>
+
+<h4>Emergency Button</h4>
+<table>
+  <tr>
+    <th>In/Out</th><th>Event</th><th>Parameter</th><th>Meaning</th>
+  </tr>
+  <tr>
+    <td>in</td>
+    <td><tt>stop</tt></td>
+    <td>-</td>
+    <td>Indicates to the Statechart that the emergency STOP-button is pressed.</td>
+  </tr>
+  <tr>
+    <td>in</td>
+    <td><tt>resume</tt></td>
+    <td>-</td>
+    <td>Indicates to the Statechart that the emergency RESUME-button is pressed.</td>
+  </tr>
+</table>
+
+<h2>Definitions</h2>
+<ul>
+  <!-- <li>set of moves</li> -->
+  <li id="safe-altitude"><b>Safe altitude</b>: If the crane is at a safe altitude, this means that it can move horizontally without bumping in to stacked containers, even while carrying a container. This altitude is defined as a constant in the Statechart.</li>
+</ul>
+
+<h2>Behavioral Requirements</h2>
+
+<ol start="0" class="requirements">
+<!--   <li>The Statechart is always in one of two states:
+    <ul>idle</ul>
+    <ul>
+  </li>
+ -->
+  <li>Initially, you may assume the magnet is off, the crane is at a <a href="#safe-altitude">safe altitude</a>, and not moving in any direction.</li>
+  <li>Immediately at startup, the Statechart will raise the output event <tt>ready</tt> to indicate that it can make its first set of moves.</li>
+  <li>After raising <tt>ready</tt>, the Statechart remains idle, waiting for the Scheduler to instruct it with the next move.
+  <li>The next move is instructed by the Scheduler by raising 3 input events at the same time, in the following order: first <tt>setTargetX</tt> and <tt>setTargetY</tt>, whose parameters indicate the X,Y position to move to, which the Statechart should remember for later (in an internal variable), followed by the input event <tt>makeMove</tt>, indicating that the Statechart can start making its move.
+  </li>
+  <li>A move always consists of the following sequence:
+    <ol>
+      <li>Start moving horizontally to the horizontal target position.</li>
+      <li>When this horizontal movement is complete, the Statechart should wait 500 ms before proceeding.</li>
+      <li>Then, start moving vertically downwards to the vertical target position.</li>
+      <li>When the vertical movement has complete, again, the Statechart should wait 500 ms before proceeding.</li>
+      <li>The magnet is <em>toggled</em> (meaning: if the magnet was off, it is turned on, or if it was on, it is turned off).</li>
+      <li>We wait another 500 ms.</li>
+      <li>The crane starts moving vertically upwards, to the <a href="#safe-altitude">safe altitude</a>.</li>
+      <li>After the vertical movement has completed, we wait yet another 500 ms.</li>
+      <li>The Statechart raises the <tt>ready</tt> output event to indicate that it is ready for the next move.</li>
+    </ol>
+  <li>While making a move, the Statechart must ignore the following incoming events: <tt>setTargetX</tt>, <tt>setTargetY</tt>, <tt>makeMove</tt>.
+  </li>
+  <li>An emergency stop can always be made (whether the crane is idle or not). During an emergency stop, the crane stops responding to all input events, except those of the emergency buttons.</li>
+  <li>An emergency stop consists of the following sequence:</li>
+  <ol>
+    <li>The emergency STOP-button is pressed.</li>
+    <li>In response, the Statechart immediately requests the Crane Controller to stop all movement.</li>
+    <li>After the crane has come to a standstill, the Statechart can respond to an emergency RESUME-button press.</li>
+    <li>If the RESUME-button is pressed, the Statechart waits 2 seconds before resuming normal behavior...
+      <ul>
+        <li>If in this 2-second period, the STOP-button is pressed again, the resuming is canceled, and Statechart stays in emergency mode until the RESUME-button is pressed again, starting the 2-second period again.</li>
+        <li>When the 2-second period is over, the activity that was happening when the emergency stop started, is resumed. For instance, if the crane was moving horizontally to pick up a container, it resumes this movement as if nothing happened, followed by the rest of the move (go down, toggle magnet, go up).</li>
+      </ul>
+    </li>
+  </ol>
+  </li>
+</ol>
+
+<h2>Testing your solution</h2>
+<h3>Overview of different testing approaches</h3>
+<table>
+  <tr>
+    <th></th>
+    <th>itemis debugger</th>
+    <th>Python GUI</th>
+    <th>Python test runner</th>
+  </tr>
+  <tr>
+    <td>white box<br/>(e.g., can see what are the current states?)</td>
+    <td>yes</td>
+    <td>no</td>
+    <td>no</td>
+  </tr>
+  <tr>
+    <td>interactive or automated?</td>
+    <td>interactive (real-time)</td>
+    <td>interactive (real-time)</td>
+    <td>automated (as-fast-as-possible)</td>
+  </tr>
+  <tr>
+    <td>returns</td>
+    <td>nothing</td>
+    <td>execution trace</td>
+    <td>pass or fail (+diff)</td>
+  </tr>
+</table>
+
+      </div>
+    </div>
+
+<h2>What is expected</h2>
+<p>The assignment has been designed specifically to encourage use of as many Statechart features as possible:</p>
+<ul>
+  <li>composite states</li>
+  <li>orthogonal states</li>
+  <li>timed transitions</li>
+  <li>guard conditions</li>
+  <li>transition actions</li>
+  <li>enter/exit actions</li>
+  <li>internal variables</li>
+  <li>internal events</li>
+  <li>history</li>
+</ul>
+<p>Make sure you understand these features, and use them, where you think they are appropriate.</p>
+<p>To give you an indication of the complexity, my own solution consists of 21 states (not counting &quot;regions&quot;) and 19 transitions.</p>
+
+<div class="box">
+  <img src="caution.gif"/>
+  <br/>
+  Always ensure that your transitions have an event trigger or after-trigger. This gives you have much more control over when your transition will fire, resulting in a solution that is more likely correct and understandable.
+  <br/>
+  <b><u><em>Never</em></u></b> use:
+  <ul>
+    <li>after 0 s (can give strange behavior)</li>
+    <li>after 1 ms (unless of course you really want to wait 1ms)</li>
+    <li>always</li>
+    <li>every X s</li>
+    <li>(no trigger)</li>
+  </ul>
+</div>
+
+<h2>Additional Resources</h2>
+<ul>
+  <li>Git repository containing microwave examples: <a href="https://github.com/joeriexelmans/itemis-examples"/>https://github.com/joeriexelmans/itemis-examples</a></li>
+  <li>itemis CREATE <a href="https://www.itemis.com/en/yakindu/state-machine/documentation/">official documentation</a></li>
+</ul>
+
+    <h2>Why we don't use itemis CREATE's builtin testing framework</h2>
+    <div class="portletBody">
+      <div class="portletContent odd">
+        <ul>
+          <li>No ability to view an input/output trace, which is of didactic importance.</li>
+          <li>Output events are not instantaneous. Instead, they remain active until the next RTC step occurs (this is <u>wrong</u>).</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+<dtml-var standard_html_footer>
+
+</body>
+</html>

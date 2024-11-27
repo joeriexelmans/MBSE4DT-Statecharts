@@ -7,7 +7,15 @@ GeneratorModel for create::python {
 		feature Outlet {
 			targetProject = PROJECT
 			targetFolder = FOLDER
-			libraryTargetFolder = "src"
+			libraryTargetFolder = "lib"
+		}
+	}
+
+	statechart Solution {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
 		}
 	}
 }

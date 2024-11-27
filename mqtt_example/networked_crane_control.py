@@ -4,7 +4,7 @@ import threading
 from paho.mqtt import client as mqtt_client
 from mqtt_example.mqtt_params import BROKER, PORT, TOPIC, REPLY_DELAY
 
-from src.yakindu.rx import Observer
+from lib.yakindu.rx import Observer
 
 CLIENT_ID = f'bip-mbse4dt/crane-{random.randint(0, 1000000)}'
 
