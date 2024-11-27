@@ -203,8 +203,22 @@ The Statechart model sits in between these components, and communicates with the
       </ul>
     </li>
   </ol>
-  </li>
 </ol>
+
+<h2 id="example-traces">Example of behavior</h2>
+
+<div style="display: inline-block;">
+  <figure>
+    <img src="sequence-chart-normal-behavior.png"/>
+    <figcaption>Sequence chart of normal behavior</figcaption>
+  </figure>
+</div>
+<div style="display: inline-block;">
+  <figure>
+    <img src="sequence-chart-emergency.png"/>
+    <figcaption>Sequence chart of emergency and resume</figcaption>
+  </figure>
+</div>
 
 <h2>Testing your solution</h2>
 There are a number of ways to test your solution:
@@ -232,7 +246,12 @@ There are a number of ways to test your solution:
     <figure>
       <p>To run:</p>
       <tt>python runner_tests.py</tt>
-      <p>The script already contains two test cases (which are just Python lists of timestamped events). Have a look at the source code of this script, and feel free to extend it with more test cases.</p>
+      <p>The <a href="https://github.com/joeriexelmans/MBSE4DT-Statecharts/blob/main/runner_tests.py">script</a> already contains two test cases (which are just Python lists of timestamped events), roughly matching the behavior in the <a href="#example-traces">sequence charts</a>:</p>
+      <ul>
+        <li>Normal behavior (crane makes 4 moves)</li>
+        <li>Emergency behavior (emergency button pressed while making a move, then resumed)</li>
+      </ul>
+      <p>Have a look at the source code of this script, and feel free to extend it with more test cases.</p>
     </figure>
   </li>
 </ul>
@@ -263,9 +282,6 @@ There are a number of ways to test your solution:
     <td>pass or fail (+diff)</td>
   </tr>
 </table>
-
-      </div>
-    </div>
 
 <h2>What is expected</h2>
 <p>The assignment has been designed specifically to encourage use of as many Statechart features as possible:</p>
@@ -311,8 +327,8 @@ There are a number of ways to test your solution:
   <li>Output events are not instantaneous. Instead, they remain active until the next RTC step occurs. This is <u>wrong</u>.</li>
 </ul>
 
-  </div>
-<dtml-var standard_html_footer>
+<h2>Contact</h2>
+If you're having trouble, contact <a href="mailto:joeri.exelmans@uantwerpen.be">joeri.exelmans@uantwerpen.be</a>
 
 </body>
 </html>
