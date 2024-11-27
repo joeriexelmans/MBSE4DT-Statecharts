@@ -10,6 +10,9 @@ class QueueEntry:
         self.event_name = event_name # name of the event - only needed for debugging
         self.canceled = False
 
+    def __repr__(self):
+        return f"({self.timestamp}, {self.event_name}, {self.value})"
+
 # The main primitive for discrete event simulation.
 # An event queue / event loop, using virtualized (simulated) time, independent of wall clock time.
 class Controller:
@@ -39,7 +42,8 @@ class Controller:
         self.event_queue.append(e)
         # important to use a stable sorting algorithm here,
         # so the order between equally-timestamped events is preserved:
-        self.event_queue.sort(key = lambda entry: entry.timestamp, reverse=True)
+        self.event_queue.sort(key = lambda entry: entry.timestamp)
+        print('added event', event_name, "queue=", self.event_queue)
         return e
 
     # Runs simulation as-fast-as-possible, until 'until'-timestamp (in simulated time)
@@ -47,7 +51,10 @@ class Controller:
     def run_until(self, until):
         # print('running until', pretty_time(until))
         while self.have_event() and self.get_earliest() <= until:
-            e = self.event_queue.pop();
+            e = self.event_queue[0]
+            # e = self.event_queue.pop();
+            self.event_queue = self.event_queue[1:]
+            print('popped event', e, "queue=", self.event_queue)
             if not e.canceled:
                 self.simulated_time = e.timestamp
                 if e.value == None:
@@ -59,7 +66,8 @@ class Controller:
         return len(self.event_queue) > 0
 
     def get_earliest(self):
-        return self.event_queue[-1].timestamp
+        # return self.event_queue[-1].timestamp
+        return self.event_queue[0].timestamp
 
 
 def pretty_time(time_ns):
