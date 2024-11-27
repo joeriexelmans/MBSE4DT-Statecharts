@@ -52,7 +52,7 @@
 
 The Statechart model sits in between these components, and communicates with them only via (asynchronous) <em>events</em>.
 
-<figure>
+<figure id="fig-sys-architecture">
   <img src="architecture.png"/>
   <figcaption>System Architecture. The blue and orange parts indicate deployment (explained later).</figcaption>
 </figure>
@@ -207,13 +207,42 @@ The Statechart model sits in between these components, and communicates with the
 </ol>
 
 <h2>Testing your solution</h2>
-<h3>Overview of different testing approaches</h3>
+There are a number of ways to test your solution:
+<ul>
+  <li><b>itemis built-in debugger</b>: allows interactive, real-time (NOT <em>scaled</em> real-time) simulation, where the user can raise any input event, change variables, etc. while observing the current state in the Statechart (white-box testing).
+    <figure>
+      <img src="itemis-debugger.png"/>
+      <figcaption>Debug button in Itemis</figcaption>
+    </figure>
+  </li>
+  <li><s><b>itemis testing framework</b>: allows for white-box and black-box automated as-fast-as-possible testing, by writing scripts that raise timed input events, and assertions on expected output events.</s><br/>
+    We recommend against using the Itemis CREATE testing framework, as explained <a href="#why-not-yakindu-testing">at the end of this page</a>.</li>
+  <li><b>Python GUI</b>: allows interactive, (scaled) real-time simulation. The complete trace of input- and output-events is recorded, and can be replayed by the Python testing framework (next point...)</li>
+    <figure>
+      <p>To run:</p>
+      <tt>python runner_realtime_eventloop.py</tt>
+    </figure>
+  As shown in the <a href="#fig-sys-architecture">system architecture figure</a>, the Python GUI includes fake implementations of the non-statechart components:
+  <ul>
+    <li><b>Scheduler</b>: (non-interactive) will dispatch a hardcoded list of moves (defined in <tt>common.py</tt>).</li>
+    <li><b>Crane Control</b>: (non-interactive) will respond to any request with a <tt>doneMoving</tt> event, after some time has passed (to simulate movement taking time).</li>
+    <li><b>Emergency Button</b>: (interactive) implemented in the GUI with two clickable buttons.</li>
+  </ul>
+  <li><b>Python testing framework</b>: allows for black-box automated as-fast-as-possible testing, by writing sequences of input events and expected output events. The benefit of this custom framework, is that a failed test will print a <em>diff</em> between the expected and actual output traces, which is (in our experience) easy to understand.
+    <figure>
+      <p>To run:</p>
+      <tt>python runner_tests.py</tt>
+      <p>The script already contains two test cases (which are just Python lists of timestamped events). Have a look at the source code of this script, and feel free to extend it with more test cases.</p>
+    </figure>
+  </li>
+</ul>
+<h3>Summary of testing approaches</h3>
 <table>
   <tr>
     <th></th>
     <th>itemis debugger</th>
     <th>Python GUI</th>
-    <th>Python test runner</th>
+    <th>Python testing framework</th>
   </tr>
   <tr>
     <td>white box<br/>(e.g., can see what are the current states?)</td>
@@ -224,7 +253,7 @@ The Statechart model sits in between these components, and communicates with the
   <tr>
     <td>interactive or automated?</td>
     <td>interactive (real-time)</td>
-    <td>interactive (real-time)</td>
+    <td>interactive ((scaled) real-time)</td>
     <td>automated (as-fast-as-possible)</td>
   </tr>
   <tr>
@@ -275,15 +304,12 @@ The Statechart model sits in between these components, and communicates with the
   <li>itemis CREATE <a href="https://www.itemis.com/en/yakindu/state-machine/documentation/">official documentation</a></li>
 </ul>
 
-    <h2>Why we don't use itemis CREATE's builtin testing framework</h2>
-    <div class="portletBody">
-      <div class="portletContent odd">
-        <ul>
-          <li>No ability to view an input/output trace, which is of didactic importance.</li>
-          <li>Output events are not instantaneous. Instead, they remain active until the next RTC step occurs (this is <u>wrong</u>).</li>
-        </ul>
-      </div>
-    </div>
+<h2 id="why-not-yakindu-testing">Why we don't use itemis CREATE's builtin testing framework</h2>
+<ul>
+  <li>If a test case fails, you only see the line of code containing the failed assertion (not even a stack trace, making it difficult to figure out the context of the failure).</li>
+  <li>No ability to view an input/output trace, which is of didactic importance.</li>
+  <li>Output events are not instantaneous. Instead, they remain active until the next RTC step occurs. This is <u>wrong</u>.</li>
+</ul>
 
   </div>
 <dtml-var standard_html_footer>

@@ -75,8 +75,11 @@ def run_scenario(input_trace, expected_output_trace, setup, INITIAL, IDEMPOTENT,
 
     actual_output_trace = tracer.output_events
 
-    clean_expected = postprocess_trace(expected_output_trace, INITIAL, IDEMPOTENT)
-    clean_actual   = postprocess_trace(actual_output_trace, INITIAL, IDEMPOTENT)
+    # clean_expected = postprocess_trace(expected_output_trace, INITIAL, IDEMPOTENT)
+    # clean_actual   = postprocess_trace(actual_output_trace, INITIAL, IDEMPOTENT)
+
+    clean_expected = expected_output_trace
+    clean_actual   = actual_output_trace
 
     def print_diff():
         # The diff printed will be a diff of the 'raw' traces, not of the cleaned up traces
