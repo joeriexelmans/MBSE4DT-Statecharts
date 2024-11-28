@@ -29,8 +29,6 @@ class Controller:
         else:
             raise_method = getattr(sc, 'raise_' + event_name)
         self.add_input_lowlevel(timestamp, raise_method, value, event_name)
-        for tracer in self.input_tracers:
-            tracer(timestamp, event_name, value)
 
     # time_offset = relative to current simulated time
     def add_input_relative(self, sc, event_name, time_offset=0, value=None):
@@ -43,7 +41,13 @@ class Controller:
         # important to use a stable sorting algorithm here,
         # so the order between equally-timestamped events is preserved:
         self.event_queue.sort(key = lambda entry: entry.timestamp)
-        print('added event', event_name, "queue=", self.event_queue)
+        return e
+
+    # difference here is that the added event will occur BEFORE equally-timestamped events that were already in the queue
+    def add_input_lowlevel_interrupt(self, timestamp, raise_method, value, event_name):
+        e = QueueEntry(timestamp, raise_method, value, event_name)
+        self.event_queue.insert(0, e)
+        self.event_queue.sort(key = lambda entry: entry.timestamp)
         return e
 
     # Runs simulation as-fast-as-possible, until 'until'-timestamp (in simulated time)
@@ -52,9 +56,10 @@ class Controller:
         # print('running until', pretty_time(until))
         while self.have_event() and self.get_earliest() <= until:
             e = self.event_queue[0]
+            for tracer in self.input_tracers:
+                tracer(e.timestamp, e.event_name, e.value)
             # e = self.event_queue.pop();
             self.event_queue = self.event_queue[1:]
-            print('popped event', e, "queue=", self.event_queue)
             if not e.canceled:
                 self.simulated_time = e.timestamp
                 if e.value == None:

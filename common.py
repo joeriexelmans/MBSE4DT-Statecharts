@@ -40,9 +40,18 @@ class FakeScheduler(Observer):
     def next(self, value=None):
         if not self.done():
             x,y = MOVES[self.next_move_idx]
-            self.controller.add_input_relative(self.sc, 'scheduler.set_target_x', value=x)
-            self.controller.add_input_relative(self.sc, 'scheduler.set_target_y', value=y)
-            self.controller.add_input_relative(self.sc, 'scheduler.make_move')
+
+            # The response of the scheduler occurs 100 ms after receiving the ready event:
+            time_offset = 100000000 # ns = 100 ms
+            # This small delay is not only realistic, it is also NECESSARY to make testing work!
+            # Let me explain: testing works by replaying a recorded input event trace. The input event trace is totally orderered, so any causal relations between input events are preserved. However, timed events are also input events, and can also have causal relations with other (non-timed) input events, but are NOT recorded, because they are not part of the interface of a Statechart, and therefore recording them would break black-box testing. This is usually not a problem, because timed events are re-generated at runtime by the timer service, but when those timed events have the same timestamp as other input events, their correct logical/causal ordering is unknown, which can make a test fail.
+            # Originally the Scheduler would respond immediately to a 'ready' event, giving the following causal chain of events, all with the same timestamp:
+            #  (input:500ms-timer after making a move) -> (output:ready) -> (input:set_target_x,set_target_y,make_move) -> (output:move)
+            # However, only the events (input:set_target_x,...) are recorded, and the 500ms-timer event will occur AFTER those events, making the Statechart not respond to the scheduler.
+            # By introducing a small delay between (output:ready) and (input:set_target_x,...), the correct ordering between (input:500ms-timer) and (input:set_target_x,...) is restored.
+            self.controller.add_input_relative(self.sc, 'scheduler.set_target_x', value=x, time_offset=time_offset)
+            self.controller.add_input_relative(self.sc, 'scheduler.set_target_y', value=y, time_offset=time_offset)
+            self.controller.add_input_relative(self.sc, 'scheduler.make_move', time_offset=time_offset)
             self.move_status_callback(f"making move {self.next_move_idx}")
             self.next_move_idx += 1
         else:

@@ -21,12 +21,11 @@ class YakinduTimerServiceAdapter:
 
         controller_duration = duration * 1000000 # ms to ns
 
-        # print("set timer"+str(event_id), "duration", duration)
         e = self.controller.add_input_lowlevel(
             self.controller.simulated_time + controller_duration, # timestamp relative to simulated time
             raise_method=sc.time_elapsed,
             value=event_id,
-            event_name="timer"+str(event_id))
+            event_name="__timer"+str(event_id))
 
         self.timers[event_id] = e
 
